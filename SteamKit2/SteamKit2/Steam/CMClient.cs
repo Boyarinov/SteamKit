@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Org.Mentalis.Network.ProxySocket;
 using SteamKit2.Discovery;
 
 namespace SteamKit2.Internal
@@ -146,7 +147,7 @@ namespace SteamKit2.Internal
 
             heartBeatFunc = new ScheduledFunction( () =>
             {
-                Send( new ClientMsgProtobuf<CMsgClientHeartBeat>( EMsg.ClientHeartBeat ) );
+                Send( new ClientMsgProtobuf<CMsgClientHeartBeat>( EMsg.ClientHeartBeat ) ); 
             } );
         }
 
@@ -163,7 +164,8 @@ namespace SteamKit2.Internal
         /// The <see cref="IPEndPoint"/> of the CM server to connect to.
         /// If <c>null</c>, SteamKit will randomly select a CM server from its internal list.
         /// </param>
-        public void Connect( ServerRecord? cmServer = null )
+        /// <param name="proxySocket"></param>
+        public void Connect( ServerRecord? cmServer = null, ProxySocket? proxySocket = null )
         {
             lock ( connectionLock )
             {
@@ -220,7 +222,14 @@ namespace SteamKit2.Internal
                     newConnection.NetMsgReceived += NetMsgReceived;
                     newConnection.Connected += Connected;
                     newConnection.Disconnected += Disconnected;
-                    newConnection.Connect( record.EndPoint, ( int )ConnectionTimeout.TotalMilliseconds );
+                    if ( record.ProtocolTypes == ProtocolTypes.Tcp )
+                    {
+                        var con = ( TcpConnection )( ( EnvelopeEncryptedConnection )newConnection ).inner;
+                        con.Connect( record.EndPoint, proxySocket, ( int )ConnectionTimeout.TotalMilliseconds );
+                    }
+                    else
+                        newConnection.Connect( record.EndPoint, ( int )ConnectionTimeout.TotalMilliseconds );
+
                 }, TaskContinuationOptions.ExecuteSynchronously ).ContinueWith( t =>
                 {
                     if ( t.IsFaulted )

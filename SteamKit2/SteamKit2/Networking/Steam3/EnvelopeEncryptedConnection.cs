@@ -19,7 +19,7 @@ namespace SteamKit2
             inner.Disconnected += OnDisconnected;
         }
 
-        readonly IConnection inner;
+        public readonly IConnection inner;
         readonly EUniverse universe;
         readonly ILogContext log;
         EncryptionState state;
