@@ -284,7 +284,7 @@ namespace SteamKit2.Internal
                 throw new ArgumentNullException( nameof( msg ), "A value for 'msg' must be supplied" );
             }
 
-            DebugLog.Assert( IsConnected, nameof( CMClient ), "Send() was called while not connected to Steam." );
+            //DebugLog.Assert( IsConnected, nameof( CMClient ), "Send() was called while not connected to Steam." );
 
             var sessionID = this.SessionID;
 
