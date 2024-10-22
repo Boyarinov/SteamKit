@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Org.Mentalis.Network.ProxySocket;
 
 namespace SteamKit2
 {
@@ -13,13 +14,23 @@ namespace SteamKit2
     {
         internal class WebSocketContext : IDisposable
         {
-            public WebSocketContext(WebSocketConnection connection, EndPoint endPoint)
+            public static string GetProxyString( IPEndPoint endPoint )
+            {
+                string ipAddress = endPoint.Address.ToString();
+                int port = endPoint.Port;
+                return $"socks5://{ipAddress}:{port}";
+            }
+            public WebSocketContext(WebSocketConnection connection, ProxySocket? proxy, EndPoint endPoint)
             {
                 this.connection = connection ?? throw new ArgumentNullException( nameof( connection ) );
                 EndPoint = endPoint ?? throw new ArgumentNullException( nameof( endPoint ) );
 
                 cts = new CancellationTokenSource();
                 socket = new ClientWebSocket();
+                if ( proxy != null )
+                {
+                    socket.Options.Proxy = new WebProxy( GetProxyString( proxy.ProxyEndPoint ) );
+                }
                 connectionUri = ConstructUri(endPoint);
             }
 

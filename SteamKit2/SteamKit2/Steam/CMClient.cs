@@ -225,7 +225,8 @@ namespace SteamKit2.Internal
                     }
                     else
                     {
-                        newConnection.Connect( record.EndPoint, ( int )ConnectionTimeout.TotalMilliseconds );
+                        var con = ( WebSocketConnection )( ( EnvelopeEncryptedConnection )newConnection ).inner;
+                        con.Connect( record.EndPoint, proxySocket, ( int )ConnectionTimeout.TotalMilliseconds );
                     }
                 }, TaskContinuationOptions.ExecuteSynchronously ).ContinueWith( t =>
                 {
