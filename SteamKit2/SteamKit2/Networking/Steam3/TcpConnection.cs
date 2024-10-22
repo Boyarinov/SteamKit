@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Org.Mentalis.Network.ProxySocket;
 
 namespace SteamKit2
 {
@@ -16,7 +17,7 @@ namespace SteamKit2
         const uint MAGIC = 0x31305456; // "VT01"
 
         private ILogContext log;
-        private Socket? socket;
+        private ProxySocket? socket;
         private Thread? netThread;
         private NetworkStream? netStream;
         private BinaryReader? netReader;
@@ -187,14 +188,19 @@ namespace SteamKit2
         /// </summary>
         /// <param name="endPoint">The end point to connect to.</param>
         /// <param name="timeout">Timeout in milliseconds</param>
-        public void Connect(EndPoint endPoint, int timeout)
+        public void Connect( EndPoint endPoint, int timeout )
+        {
+            Connect( endPoint, null, timeout );
+        }
+
+        public void Connect( EndPoint endPoint, ProxySocket? proxy, int timeout )
         {
             lock ( netLock )
             {
                 DebugLog.Assert( cancellationToken == null, nameof( TcpConnection ), "Connection cancellation token is not null" );
                 cancellationToken = new CancellationTokenSource();
 
-                socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+                socket = proxy ?? new ProxySocket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
                 socket.ReceiveTimeout = timeout;
                 socket.SendTimeout = timeout;
 
